@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Currency Exchange</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .comparison-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .comparison-form {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .swap-btn, .compare-btn, .show-all-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .show-all-btn {
+            background: #059669;
+            margin-top: 10px;
+        }
+
+        .swap-btn:hover, .compare-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .show-all-btn:hover {
+            background: #047857;
+        }
+
+        .currency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .currency-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .currency-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .currency-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .flag {
+            width: 40px;
+            height: 30px;
+            border-radius: 3px;
+        }
+
+        .country-name {
+            font-weight: bold;
+        }
+
+        .currency-rate {
+            font-size: 1.1rem;
+            color: #059669;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            font-size: 1.2rem;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+            font-size: 1.1rem;
+        }
+
+        /* Results Section Styles */
+        .results-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .exchange-result {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 10px;
+        }
+
+        .exchange-rate {
+            font-size: 1.5rem;
+            color: #059669;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .converted-amount {
+            font-size: 1.2rem;
+            color: #1e40af;
+        }
+
+        .transfer-apps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .app-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .app-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .app-card.best {
+            border-color: #059669;
+            background: #f0fdf4;
+        }
+
+        .app-rating {
+            color: #f59e0b;
+            margin: 8px 0;
+        }
+
+        .app-fee {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .filter-info {
+            background: #e0f2fe;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 Global Currency Exchange</h1>
+            <p>Live exchange rates compared to USD</p>
+        </div>
+
+        <div class="comparison-section">
+            <h2>Currency Comparison & Money Transfer</h2>
+            <div class="comparison-form">
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="amount" value="100" min="1">
+                </div>
+                <div class="form-group">
+                    <label>From</label>
+                    <select id="fromCurrency">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <button class="swap-btn" onclick="swapCurrencies()">⇄</button>
+                <div class="form-group">
+                    <label>To</label>
+                    <select id="toCurrency">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <button class="compare-btn" onclick="compareCurrencies()">Compare & Transfer</button>
+            </div>
+        </div>
+
+        <!-- Money Transfer Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="exchange-result">
+                <h3>Exchange Result</h3>
+                <div class="exchange-rate" id="exchangeRate">1 USD = 0.85 EUR</div>
+                <div class="converted-amount" id="convertedAmount">100 USD = 85.00 EUR</div>
+            </div>
+
+            <h3>💸 Recommended Money Transfer Apps</h3>
+            <div class="transfer-apps" id="transferApps">
+                <!-- Transfer apps will appear here -->
+            </div>
+        </div>
+
+        <div class="comparison-section">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">All Currencies</h2>
+                <button class="show-all-btn" onclick="showAllCurrencies()" id="showAllBtn" style="display: none;">
+                    Show All Currencies
+                </button>
+            </div>
+            
+            <div class="filter-info" id="filterInfo" style="display: none;">
+                <!-- Filter information will appear here -->
+            </div>
+            
+            <div class="loading" id="loading">Loading currency data...</div>
+            <div class="currency-grid" id="currencyGrid">
+                <!-- Currency cards will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allCountries = [];
+        let filteredCountries = [];
+        let isFiltered = false;
+
+        // Simple data loading function
+        async function loadCurrencies() {
+            try {
+                const response = await fetch('/get_currencies');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allCountries = data.countries;
+                    filteredCountries = [...allCountries]; // Start with all countries
+                    displayCurrencies(allCountries);
+                    
+                    // Load popular currencies for dropdown
+                    await loadPopularCurrencies();
+                    
+                    // Show data source
+                    const loadingElement = document.getElementById('loading');
+                    if (data.source === 'fallback') {
+                        loadingElement.innerHTML = 
+                            '<div style="color: orange;">⚠️ Using demo data (APIs unavailable) - Showing ' + allCountries.length + ' countries</div>';
+                    } else {
+                        loadingElement.innerHTML = 
+                            '<div style="color: green;">✅ Live data loaded successfully! - Showing ' + allCountries.length + ' countries</div>';
+                    }
+                    
+                    setTimeout(() => {
+                        loadingElement.style.display = 'none';
+                    }, 3000);
+                    
+                } else {
+                    throw new Error('Failed to load data');
+                }
+            } catch (error) {
+                document.getElementById('loading').innerHTML = 
+                    '<div class="error">Error loading data. Please refresh the page.</div>';
+            }
+        }
+
+        async function loadPopularCurrencies() {
+            try {
+                const response = await fetch('/get_popular_currencies');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const fromSelect = document.getElementById('fromCurrency');
+                    const toSelect = document.getElementById('toCurrency');
+                    
+                    // Clear existing options
+                    fromSelect.innerHTML = '';
+                    toSelect.innerHTML = '';
+                    
+                    // Add popular currencies
+                    data.currencies.forEach(currency => {
+                        const option = `<option value="${currency[0].toLowerCase()}">${currency[0]} - ${currency[1]}</option>`;
+                        fromSelect.innerHTML += option;
+                        toSelect.innerHTML += option;
+                    });
+                    
+                    // Set default values
+                    fromSelect.value = 'usd';
+                    toSelect.value = 'eur';
+                }
+            } catch (error) {
+                console.error('Error loading popular currencies:', error);
+            }
+        }
+
+        function displayCurrencies(countries) {
+            const grid = document.getElementById('currencyGrid');
+            
+            if (!countries || countries.length === 0) {
+                grid.innerHTML = '<div class="no-results">No currencies found matching your selection</div>';
+                return;
+            }
+
+            grid.innerHTML = '';
+
+            countries.forEach(country => {
+                const card = document.createElement('div');
+                card.className = 'currency-card';
+                card.innerHTML = `
+                    <div class="currency-header">
+                        <img src="${country.flag_url}" alt="Flag" class="flag" onerror="this.src='https://via.placeholder.com/40x30/667eea/white?text=🏳'">
+                        <div>
+                            <div class="country-name">${country.name}</div>
+                            <div>${country.currency_code}</div>
+                        </div>
+                    </div>
+                    <div class="currency-rate">
+                        1 USD = ${country.rate ? country.rate.toFixed(4) : 'N/A'} ${country.currency_code}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function swapCurrencies() {
+            const from = document.getElementById('fromCurrency');
+            const to = document.getElementById('toCurrency');
+            const temp = from.value;
+            from.value = to.value;
+            to.value = temp;
+        }
+
+        async function compareCurrencies() {
+            const amount = document.getElementById('amount').value;
+            const fromCurrency = document.getElementById('fromCurrency').value.toUpperCase();
+            const toCurrency = document.getElementById('toCurrency').value.toUpperCase();
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('loading').innerHTML = 'Comparing currencies...';
+                
+                const response = await fetch(`/compare_currencies?from=${fromCurrency}&to=${toCurrency}&amount=${amount}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayComparisonResults(data);
+                    filterCurrenciesForComparison(fromCurrency, toCurrency);
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error comparing currencies: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function filterCurrenciesForComparison(fromCurrency, toCurrency) {
+            // Filter to show only the compared currencies
+            filteredCountries = allCountries.filter(country => 
+                country.currency_code === fromCurrency || country.currency_code === toCurrency
+            );
+            
+            isFiltered = true;
+            
+            // Show filter info
+            const filterInfo = document.getElementById('filterInfo');
+            filterInfo.innerHTML = `Showing compared currencies: <strong>${fromCurrency}</strong> and <strong>${toCurrency}</strong>`;
+            filterInfo.style.display = 'block';
+            
+            // Show "Show All" button
+            document.getElementById('showAllBtn').style.display = 'block';
+            
+            // Display filtered currencies
+            displayCurrencies(filteredCountries);
+        }
+
+        function showAllCurrencies() {
+            filteredCountries = [...allCountries];
+            isFiltered = false;
+            
+            // Hide filter info and button
+            document.getElementById('filterInfo').style.display = 'none';
+            document.getElementById('showAllBtn').style.display = 'none';
+            
+            // Display all currencies
+            displayCurrencies(allCountries);
+        }
+
+        function displayComparisonResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            const exchangeRate = document.getElementById('exchangeRate');
+            const convertedAmount = document.getElementById('convertedAmount');
+            const transferApps = document.getElementById('transferApps');
+
+            // Update exchange rate display
+            let rateText = `1 ${data.from_currency} = ${data.exchange_rate.toFixed(4)} ${data.to_currency}`;
+            if (data.rate_source === 'live') {
+                rateText += ' 🟢'; // Green dot for live rates
+            } else {
+                rateText += ' 🟡'; // Yellow dot for demo rates
+            }
+            
+            exchangeRate.textContent = rateText;
+            convertedAmount.textContent = `${data.amount} ${data.from_currency} = ${data.converted_amount.toFixed(2)} ${data.to_currency}`;
+
+            // Display transfer apps
+            transferApps.innerHTML = '';
+            data.transfer_apps.forEach((app, index) => {
+                const isBest = index === 0; // First app is the best
+                const appCard = document.createElement('div');
+                appCard.className = `app-card ${isBest ? 'best' : ''}`;
+                appCard.innerHTML = `
+                    <h4>${app.name} ${isBest ? '🏆' : ''}</h4>
+                    <div class="app-rating">
+                        ${'★'.repeat(Math.floor(app.rating))} ${app.rating}/5
+                    </div>
+                    <div class="app-fee">Fees: ${app.fee}</div>
+                    <div>Speed: ${app.speed}</div>
+                    <div style="margin-top: 10px; font-weight: bold; color: #059669;">
+                        You get: ${app.estimated_amount.toFixed(2)} ${data.to_currency}
+                    </div>
+                    ${data.rate_source === 'live' ? '<small style="color: #059669;">Live rates</small>' : '<small style="color: orange;">Demo rates</small>'}
+                `;
+                transferApps.appendChild(appCard);
+            });
+
+            // Show the results section
+            resultsSection.style.display = 'block';
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Load data when page opens
+        loadCurrencies();
+    </script>
+</body>
+</html>

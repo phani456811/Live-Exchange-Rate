@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Comparison - Global Currency Exchange</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: white;
+            color: #2563eb;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .comparison-tools {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .multi-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .currency-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .currency-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #10b981;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+
+        <div class="header">
+            <h1>📊 Advanced Currency Comparison</h1>
+            <p>Compare multiple currencies and view historical trends</p>
+        </div>
+
+        <div class="comparison-tools">
+            <div class="tool-card">
+                <h2><i class="fas fa-chart-line"></i> Historical Trends</h2>
+                <select id="historyCurrency" onchange="loadHistoricalData()">
+                    <option value="eur">EUR - Euro</option>
+                    <option value="gbp">GBP - British Pound</option>
+                    <option value="jpy">JPY - Japanese Yen</option>
+                    <option value="inr">INR - Indian Rupee</option>
+                </select>
+                <div class="chart-container">
+                    <canvas id="historyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="tool-card">
+                <h2><i class="fas fa-balance-scale"></i> Multi-Currency Compare</h2>
+                <div>
+                    <input type="text" id="currenciesInput" placeholder="EUR,GBP,JPY,INR" 
+                           value="EUR,GBP,JPY,INR">
+                    <button onclick="loadMultiComparison()">Compare</button>
+                </div>
+                <div class="multi-comparison" id="multiComparison">
+                    <!-- Currency boxes will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let historyChart = null;
+
+        // Load historical data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHistoricalData();
+            loadMultiComparison();
+        });
+
+        async function loadHistoricalData() {
+            const currency = document.getElementById('historyCurrency').value;
+            
+            try {
+                const response = await fetch(`/get_historical_rates?currency=${currency}&days=7`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayHistoricalChart(data.historical_data, currency.toUpperCase());
+                }
+            } catch (error) {
+                console.error('Error loading historical data:', error);
+            }
+        }
+
+        function displayHistoricalChart(data, currency) {
+            const ctx = document.getElementById('historyChart').getContext('2d');
+            
+            if (historyChart) {
+                historyChart.destroy();
+            }
+
+            historyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(item => item.date),
+                    datasets: [{
+                        label: `USD to ${currency}`,
+                        data: data.map(item => item.rate),
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Historical Exchange Rates (Last 7 Days)`
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadMultiComparison() {
+            const currencies = document.getElementById('currenciesInput').value;
+            
+            try {
+                const response = await fetch(`/multi_compare?currencies=${currencies}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayMultiComparison(data.comparison_data);
+                }
+            } catch (error) {
+                console.error('Error loading multi comparison:', error);
+            }
+        }
+
+        function displayMultiComparison(data) {
+            const container = document.getElementById('multiComparison');
+            container.innerHTML = '';
+
+            data.forEach(item => {
+                const box = document.createElement('div');
+                box.className = 'currency-box';
+                box.innerHTML = `
+                    <div style="font-weight: bold;">${item.currency}</div>
+                    <div class="currency-value">${item.rate.toFixed(4)}</div>
+                    <div style="font-size: 0.8rem; color: #64748b;">per USD</div>
+                `;
+                container.appendChild(box);
+            });
+        }
+    </script>
+</body>
+</html>
