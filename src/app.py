@@ -3,7 +3,9 @@ import requests
 from datetime import datetime
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, 
+            template_folder='../templates',
+            static_folder='../static')
 
 # Enhanced fallback data with more countries
 FALLBACK_CURRENCIES = [
