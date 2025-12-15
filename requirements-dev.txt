@@ -1,0 +1,7 @@
+# Development dependencies
+pytest==7.4.0
+pytest-cov==4.1.0
+flake8==6.1.0
+black==23.9.1
+pre-commit==3.4.0
+docker-compose==1.29.2
