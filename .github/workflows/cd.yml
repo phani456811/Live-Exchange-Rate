@@ -42,4 +42,3 @@ jobs:
               "docker rm exchange-rate || true",
               "docker run -d --name exchange-rate -p 80:5000 '${{ steps.login-ecr.outputs.registry }}'/'${{ secrets.ECR_REPOSITORY }}':latest"
             ]'
-
