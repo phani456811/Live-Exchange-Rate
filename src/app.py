@@ -216,3 +216,8 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     # IMPORTANT for Docker/EC2: host must be 0.0.0.0
     app.run(host="0.0.0.0", port=port)
+
+API_KEY = os.getenv("EXCHANGE_API_KEY")
+
+if not API_KEY:
+    raise ValueError("API key not found")
